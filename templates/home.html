@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Price Predictor</title>
+</head>
+<body>
+    <h1>Stock Price Predictor</h1>
+    <form action="/" method="post">
+        <label for="ticker">Enter Stock Ticker Symbol (e.g., AAPL):</label>
+        <input type="text" id="ticker" name="ticker" required>
+        <input type="submit" value="Predict Price">
+    </form>
+
+    {% if predicted_price %}
+        <h2>Predicted Price for {{ ticker }}:</h2>
+        <p>${{ predicted_price }}</p>
+        
+        <h3>Current Price for {{ ticker }}:</h3>
+        <p>${{ current_price }}</p> <!-- Display Current Price -->
+        
+        <h3>Stock Price Prediction Chart:</h3>
+        <img src="{{ plot_url }}" alt="Stock Price Prediction Plot">
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
