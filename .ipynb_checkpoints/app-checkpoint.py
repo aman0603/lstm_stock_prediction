@@ -42,14 +42,17 @@ def preprocess_data(data):
     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
     return x_train, scaler, data
 
-def create_plot(data, predicted_price, ticker):
+def create_plot(data, predicted_price, ticker, days=100):
+    # Get the last 'days' rows from the data (e.g., the last 30 days)
+    data_recent = data.tail(days)
+    
     # Plot the actual stock prices and the predicted price
     plt.figure(figsize=(10, 6))
-    plt.plot(data['Date'], data['Close'], label='Actual Price', color='blue')
-    plt.axvline(x=data['Date'].iloc[-1], color='red', linestyle='--', label='Prediction Point')
+    plt.plot(data_recent['Date'], data_recent['Close'], label='Actual Price', color='blue')
+    plt.axvline(x=data_recent['Date'].iloc[-1], color='red', linestyle='--', label='Prediction Point')
     
     # Add predicted future price point
-    future_date = data['Date'].iloc[-1] + pd.Timedelta(days=1)
+    future_date = data_recent['Date'].iloc[-1] + pd.Timedelta(days=1)
     plt.scatter(future_date, predicted_price, color='green', label=f'Predicted Price: ${predicted_price:.2f}')
     
     # Format the plot
@@ -68,6 +71,8 @@ def create_plot(data, predicted_price, ticker):
     plt.close()
     return plot_path
 
+
+# Define the route for the home page
 # Define the route for the home page
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -81,11 +86,11 @@ def home():
             prediction = model.predict(x_train[-1:].reshape((1, 100, 1)))
             predicted_price = scaler.inverse_transform(prediction)[0][0]
             
-            # Get the current stock price
-            current_price = data['Close'].iloc[-1]  # Last available close price
+            # Get the current stock price (convert to float)
+            current_price = float(data['Close'].iloc[-1])  # Last available close price
             
-            # Generate the plot
-            plot_path = create_plot(data, predicted_price, ticker)
+            # Generate the plot for the last 30 days
+            plot_path = create_plot(data, predicted_price, ticker, days=100)
             
             return render_template('home.html', ticker=ticker, predicted_price=predicted_price, 
                                    current_price=current_price, plot_url=plot_path)
@@ -95,6 +100,7 @@ def home():
     
     return render_template('home.html')
 
+
 # Serve the generated plot from static folder
 @app.route('/static/<filename>')
 def send_image(filename):
@@ -102,3 +108,4 @@ def send_image(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
